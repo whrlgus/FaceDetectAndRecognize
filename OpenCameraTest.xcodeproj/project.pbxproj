@@ -16,6 +16,8 @@
 		4C8C40EB22B7293600113D6C /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C8C40EA22B7293600113D6C /* AVFoundation.framework */; };
 		4C8C40ED22B7295700113D6C /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C8C40EC22B7295700113D6C /* CoreMedia.framework */; };
 		4CFB986C22B89297000FF905 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CFB986B22B89297000FF905 /* opencv2.framework */; };
+		4CFB986E22B8AA17000FF905 /* haarcascade_frontalface_default.xml in Resources */ = {isa = PBXBuildFile; fileRef = 4CFB986D22B8AA17000FF905 /* haarcascade_frontalface_default.xml */; };
+		4CFB987022B8C943000FF905 /* haarcascade_eye.xml in Resources */ = {isa = PBXBuildFile; fileRef = 4CFB986F22B8C943000FF905 /* haarcascade_eye.xml */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +34,8 @@
 		4C8C40EA22B7293600113D6C /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		4C8C40EC22B7295700113D6C /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		4CFB986B22B89297000FF905 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
+		4CFB986D22B8AA17000FF905 /* haarcascade_frontalface_default.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = haarcascade_frontalface_default.xml; sourceTree = "<group>"; };
+		4CFB986F22B8C943000FF905 /* haarcascade_eye.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = haarcascade_eye.xml; path = "../../../../Downloads/opencv-master/data/haarcascades/haarcascade_eye.xml"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,9 +77,11 @@
 				4C8C40D322B7269200113D6C /* ViewController.swift */,
 				4C8C40D522B7269200113D6C /* Main.storyboard */,
 				4C8C40D822B7269400113D6C /* Assets.xcassets */,
+				4CFB986D22B8AA17000FF905 /* haarcascade_frontalface_default.xml */,
 				4C8C40DA22B7269400113D6C /* LaunchScreen.storyboard */,
 				4C8C40DD22B7269400113D6C /* Info.plist */,
 				4C8C40E622B726E400113D6C /* Camera.h */,
+				4CFB986F22B8C943000FF905 /* haarcascade_eye.xml */,
 				4C8C40E722B726E400113D6C /* Camera.mm */,
 				4C8C40E522B726E300113D6C /* OpenCameraTest-Bridging-Header.h */,
 			);
@@ -152,6 +158,8 @@
 			files = (
 				4C8C40DC22B7269400113D6C /* LaunchScreen.storyboard in Resources */,
 				4C8C40D922B7269400113D6C /* Assets.xcassets in Resources */,
+				4CFB986E22B8AA17000FF905 /* haarcascade_frontalface_default.xml in Resources */,
+				4CFB987022B8C943000FF905 /* haarcascade_eye.xml in Resources */,
 				4C8C40D722B7269200113D6C /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -22,6 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(id)initWithController:(UIViewController<CameraDelegate>*)c andImageView:(UIImageView*)iv andCaptureView:(UIImageView*)cv;
 
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo;
 
 -(void)start;
 -(void)stop;

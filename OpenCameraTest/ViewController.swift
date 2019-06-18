@@ -11,6 +11,7 @@ import UIKit
 class ViewController: UIViewController,CameraDelegate {
 
     var myCamera:Camera!
+    var img:UIImage!
     
     
     @IBOutlet weak var captureView: UIImageView!
@@ -38,6 +39,7 @@ class ViewController: UIViewController,CameraDelegate {
     }
     
     func showCapturedFrame(_ image:UIImage){
+        img = image;
         DispatchQueue.main.async {
             self.captureView.image = image
             self.captureView.setNeedsDisplay()
