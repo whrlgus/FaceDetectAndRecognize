@@ -24,37 +24,66 @@ using namespace std;
 @end
 
 @implementation Camera{
-    UIViewController* viewController;
+    UIViewController<CameraDelegate>* viewController;
     UIImageView* videoImageView;
-    UIImageView* captureImageView;
     UITextField* resultTextField;
     CvVideoCamera* videoCamera;
     CascadeClassifier face_cascade, eye_cascade;
-    vector<cv::Rect> faces_with_low_prob,eyes_with_low_prob;
-    vector<cv::Rect*> faces_with_high_prob;
+    vector<cv::Rect> facesRect_with_low_prob,eyesRect_with_low_prob;
+    cv::Rect faceRect_with_high_prob;
+    
+    cv::Rect faceFinal;
+    Mat imageFinal;
+    
+    Mat faceMat;
+    
+    bool isDetectedOne;
+    
+    
+    BOOL __block isFaceDetectRunning;
+    BOOL __block isTrainRunning;
+    BOOL __block isPredictRunning;
+    dispatch_semaphore_t semaphore;
+    
+    
+    
     Ptr<cv::face::LBPHFaceRecognizer> model;
     vector<cv::Mat> trainFaces;
     vector<int> trainLabels;
+    
+    int newLabel;
+    
     bool isTrained;
+    
+    
+    Mat* imageForThread;
+    
+    
     
 }
 
-
--(instancetype)initWithController:(UIViewController*)c andVideoImageView:(UIImageView*)viv andCaptureImageView:(UIImageView*)civ andResultTextField:(UITextField*)rtf;
+-(instancetype)initWithViewController:(UIViewController<CameraDelegate>*)vc andVideoImageView:(UIImageView*)viv andResultTextField:(UITextField*)rtf andNewLable:(int*)nl
 {
-    viewController = c;
+    viewController = vc;
     videoImageView = viv;
-    captureImageView = civ;
     resultTextField = rtf;
+    newLabel = 0;
     [self initCamera];
     [self initCascadeClassifier];
     model = cv::face::LBPHFaceRecognizer::create();
     //trainFaces.clear();
     //trainLabels.clear();
     isTrained=false;
+    isFaceDetectRunning = false;
+    isTrainRunning = false;
+    isPredictRunning = false;
+    semaphore = dispatch_semaphore_create(0);
     
     return self;
+    
 }
+
+
 
 -(void)initCascadeClassifier
 {
@@ -78,98 +107,142 @@ using namespace std;
 
 - (void)processImage:(cv::Mat&)image
 {
-    
-    // andMinNumOfDetection의 최소 설정값은 2
-    [self detectFace:image andMinNumOfDetection:2];
-    
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        for(auto &face : self->faces_with_high_prob)
-//            rectangle(image, *face, Scalar(255,0,0),10);
-//        self->videoImageView.image = MatToUIImage(image);
-//    });
-    
-    int numOfFaces = (int)faces_with_high_prob.size();
-    if(numOfFaces==1){
-        
-        Mat face = image(*faces_with_high_prob[0]);
-        cvtColor(face, face, COLOR_RGBA2GRAY);
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self->videoImageView.image = MatToUIImage(face);
+    if(!isFaceDetectRunning){
+        //detectface 실행
+        dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+            self->isFaceDetectRunning=true;
+            NSLog(@"global dispatch 시작");
+            
+            Mat i = image;
+            
+            if((self->isDetectedOne = [self detectFace:i])){
+                if(self.trainBtnClicked){
+                    dispatch_semaphore_signal(self->semaphore);
+                }
+                if(self.predictBtnClicked){
+                    NSLog(@"predict 시작");
+                    dispatch_semaphore_signal(self->semaphore);
+                    [self predictFace];
+                    
+                }
+            }
+            
+            self->isFaceDetectRunning=false;
         });
-        
-        
-        if(trainFaces.size()<50){
-            dispatch_async(dispatch_get_main_queue(), ^{
-                self->resultTextField.text = [NSString stringWithFormat:@"학습중 %d%%",2*self->trainFaces.size()];
-            });
-            NSLog(@"%d",(int)trainFaces.size());
-            trainFaces.push_back(face);
-//            if(trainFaces.size()==1){
-//                for(int i=0;i<30;++i) trainFaces.push_back(trainFaces[0]);
-//            }
-        }else{
-            trainLabels.assign(trainFaces.size(),0);
-            [self trainFaces];
-            isTrained=true;
-        }
-        
-        if(isTrained){
-            [self predictFace:face];
-        }
-        
     }
-    else if(numOfFaces>1) NSLog(@"얼굴이 여러개");
-    else NSLog(@"얼굴 없음");
+    
+    
+    // ui 업데이트를 위한 메인 큐
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"메인 큐 실행 ui update");
+        
+        cvtColor(image, image, COLOR_BGRA2RGB);
+        //cvtColor(image, self->faceMat,COLOR_RGB2GRAY);
+        if(self->isDetectedOne){
+            NSLog(@"메인 큐 실행 얼굴 표시");
+            
+            rectangle(image, self->faceRect_with_high_prob, Scalar(255,0,0),10);
+            NSLog(@"사각형");
+        }
+        self->videoImageView.image = MatToUIImage(image);
+        self->faceRect_with_high_prob = cv::Rect();
+    });
+    
+    
+    //[viewController updateImageView:MatToUIImage(image)];
+    
+    
+    
+}
+
+-(void)prepareTrainData
+{
+    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+    Mat faceMat_copy=faceMat;
+    
+    trainFaces.push_back(imageFinal);
+    NSLog(@"%d label num: %d",(int)self->trainFaces.size(),newLabel);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        self->resultTextField.text = [NSString stringWithFormat:@"사진 수집 중 %d%%",(int)self->trainFaces.size()*2];
+    });
+    
 }
 
 -(void)trainFaces
 {
-    
-    model->train(trainFaces, trainLabels);
-    //trainFaces.clear();
-    //trainLabels.clear();
-}
-
--(void)predictFace:(cv::Mat&)face
-{
-    int predicted_label;
-    double predicted_confidence;
-    model->predict(face, predicted_label, predicted_confidence);
-    //int prediction = model->predict(face);
-    //NSLog(@"label: %d, confidence: %f, prediction: %d",predicted_label,predicted_confidence,prediction);
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self->resultTextField.text = [NSString stringWithFormat:@"confidence: %f",predicted_confidence];
-    });
-    NSLog(@"confidence: %f",predicted_confidence);
-}
-
-
-
--(void)detectFace:(cv::Mat&)image andMinNumOfDetection:(int)min
-{
-    faces_with_low_prob.clear();
-    eyes_with_low_prob.clear();
-    faces_with_high_prob.clear();
-    
-    face_cascade.detectMultiScale(image, faces_with_low_prob);
-    if(faces_with_low_prob.empty()) return;
-    
-    for(auto &face:faces_with_low_prob){
-        Mat croppedImg = image(face);
-        eye_cascade.detectMultiScale(croppedImg, eyes_with_low_prob);
-        if(eyes_with_low_prob.size()<2) continue; // 눈이 1개 이하면 얼굴이 아니라고 판단
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
         
-        faces_with_high_prob.push_back(&face);
-        if(faces_with_high_prob.size()==min)break;
-    }
+        while(self->trainFaces.size()<50)
+            [self prepareTrainData];
+        
+        self->trainLabels.assign(self->trainFaces.size(), self->newLabel);
+        
+        
+        if(self->newLabel==0)
+            self->model->train(self->trainFaces, self->trainLabels);
+        else
+            self->model->update(self->trainFaces, self->trainLabels);
+        vector<Mat>().swap(self->trainFaces);
+        vector<int>().swap(self->trainLabels);
+        NSLog(@"train 끝@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        self->newLabel=self->newLabel+1;
+        [self->viewController enableRecognizeButton];
+        
+    });
 }
+
+-(void)predictFace
+{
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+        
+        dispatch_semaphore_wait(self->semaphore, DISPATCH_TIME_FOREVER);
+        Mat faceMat_copy = self->faceMat;
+        
+        int predicted_label;
+        double predicted_confidence;
+        //cvtColor(imageFinal, imageFinal, COLOR_RGB2GRAY);
+        self->model->predict(self->imageFinal, predicted_label, predicted_confidence);
+        
+        int prediction = self->model->predict(self->imageFinal);
+        //NSLog(@"label: %d, confidence: %f, prediction: %d",predicted_label,predicted_confidence,prediction);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self->resultTextField.text = [NSString stringWithFormat:@"confidence: %f///prediction: %d ",predicted_confidence,prediction];
+        });
+    });
+}
+
+
+
+-(bool)detectFace:(cv::Mat&)image
+{
+    vector<cv::Rect>().swap(facesRect_with_low_prob);
+    //facesRect_with_low_prob.clear();
+    
+    Mat tmp = image;
+    
+    
+    face_cascade.detectMultiScale(tmp, facesRect_with_low_prob);
+    if(facesRect_with_low_prob.empty()) return false;
+    
+    //eyesRect_with_low_prob.clear();
+    vector<cv::Rect>().swap(eyesRect_with_low_prob);
+    for(auto& face: facesRect_with_low_prob){
+        if(!faceRect_with_high_prob.empty()) return false;
+        
+        Mat croppedImg = tmp(face);
+        eye_cascade.detectMultiScale(croppedImg, eyesRect_with_low_prob);
+        if(eyesRect_with_low_prob.size()<2) continue; // 눈이 1개 이하면 얼굴이 아니라고 판단
+        faceRect_with_high_prob = face;
+        cvtColor(croppedImg, imageFinal, COLOR_RGB2GRAY);
+        faceFinal = face;
+        return true;
+    }
+    return true;
+}
+
 //putText(<#InputOutputArray img#>, <#const String &text#>, <#Point org#>, <#int fontFace#>, <#double fontScale#>, <#Scalar color#>)
 
--(void)capture
-{
-    captureImageView.image = videoImageView.image;
-}
+
 
 -(void)start
 {

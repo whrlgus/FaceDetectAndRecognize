@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4CA3049822C2550400BFDBFB /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CA3049722C2550400BFDBFB /* opencv2.framework */; };
 		4CFB99C622BA3CA9000FF905 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CFB99C522BA3CA9000FF905 /* AppDelegate.swift */; };
 		4CFB99C822BA3CA9000FF905 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CFB99C722BA3CA9000FF905 /* ViewController.swift */; };
 		4CFB99CB22BA3CA9000FF905 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4CFB99C922BA3CA9000FF905 /* Main.storyboard */; };
@@ -21,6 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4CA3049722C2550400BFDBFB /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
 		4CFB99C222BA3CA9000FF905 /* opencvframeworktest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = opencvframeworktest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4CFB99C522BA3CA9000FF905 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4CFB99C722BA3CA9000FF905 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -45,6 +47,7 @@
 			files = (
 				4CFB99E222BA3E80000FF905 /* CoreMedia.framework in Frameworks */,
 				4CFB99E122BA3DCE000FF905 /* AVFoundation.framework in Frameworks */,
+				4CA3049822C2550400BFDBFB /* opencv2.framework in Frameworks */,
 				4CFB99D822BA3D29000FF905 /* opencv2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -90,6 +93,7 @@
 			isa = PBXGroup;
 			children = (
 				4CFB99D722BA3D29000FF905 /* opencv2.framework */,
+				4CA3049722C2550400BFDBFB /* opencv2.framework */,
 				4CFB99DF22BA3DCE000FF905 /* AVFoundation.framework */,
 				4CFB99DE22BA3DCE000FF905 /* CoreMedia.framework */,
 			);

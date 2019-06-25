@@ -1,5 +1,5 @@
 # FaceDetectAndRecognize
 // face module을 추가한 opencv2.framework 파일 필요 
 
-앱 실행시 바로 얼굴을 인식해서 학습을 하고, 학습 완료 후에는 감지되는 얼굴을 식별하여 학습한 얼굴과의 distance를 화면에 출력
+스레드 사용해서 face train, update, predict 기능 구현.... 코드정리 안됨, 스레드 관리 필요
 

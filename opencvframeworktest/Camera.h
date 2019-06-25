@@ -11,11 +11,26 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol CameraDelegate <NSObject>
+
+-(void)updateImageView:(UIImage*)image;
+-(void)enableRecognizeButton;
+
+@end
+
+
 @interface Camera : NSObject
--(instancetype)initWithController:(UIViewController*)c andVideoImageView:(UIImageView*)viv andCaptureImageView:(UIImageView*)civ andResultTextField:(UITextField*)rtf;
+
+@property (nonatomic, assign) BOOL trainBtnClicked;
+@property (nonatomic, assign) BOOL predictBtnClicked;
+
+-(instancetype)initWithViewController:(UIViewController<CameraDelegate>*)vc andVideoImageView:(UIImageView*)viv andResultTextField:(UITextField*)rtf andNewLable:(int*)nl;
+-(void)trainFaces;
+-(void)predictFace;
 -(void)start;
 -(void)stop;
--(void)capture;
+
 @end
+
 
 NS_ASSUME_NONNULL_END
